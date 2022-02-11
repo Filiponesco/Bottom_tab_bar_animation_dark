@@ -1,16 +1,18 @@
-# tab_bar_animation_dark
+# Tab bar animation dark
 
-A new Flutter project.
+Have fun with ImageFilter and Adobe Illustrator.
 
-## Getting Started
+| Original  | Reproduction |
+| ------------- | ------------- |
+| <img src="https://github.com/Filiponesco/Bottom_tab_bar_animation_dark/blob/master/docs/design.gif" width="320" height="240"/>  | <img src="https://github.com/Filiponesco/Bottom_tab_bar_animation_dark/blob/master/docs/result.gif" width="436" height="169"/>  |
 
-This project is a starting point for a Flutter application.
+# I have learned
+- How to use bezier in Adobe Illustrator.
+- Flutter Shape Marker is not free ;) 
+- BackdropFilter how to use
+- How to animate AnimatedIcon
+- How to animate Align widget
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# To think
+- How to add texture to SVG file
+- How to generate noise
