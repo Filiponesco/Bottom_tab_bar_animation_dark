@@ -1,6 +1,9 @@
-import 'dart:ui';
+import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tab_bar_animation_dark/colors.dart';
 
@@ -50,27 +53,29 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           ),
           PositionOfFab(
             child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8, tileMode: TileMode.decal),
+              imageFilter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8, tileMode: TileMode.decal),
               child: FakeFab(),
             ),
           ),
           PositionOfFab(
-            child: Fab(onTap: (menuItem){
-              setState(() {
-                _selectedMenuItem = menuItem;
-              });
-            },),
+            child: Fab(
+              onTap: (menuItem) {
+                setState(() {
+                  _selectedMenuItem = menuItem;
+                });
+              },
+            ),
           ),
           PositionOfIndicator(
             child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 20, tileMode: TileMode.decal),
+              imageFilter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 20, tileMode: TileMode.decal),
               child: Indicator(),
             ),
             selectedItem: _selectedMenuItem,
           ),
           PositionOfIndicator(
             child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 20, tileMode: TileMode.decal),
+              imageFilter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 20, tileMode: TileMode.decal),
               child: Indicator(),
             ),
             selectedItem: _selectedMenuItem,
@@ -81,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           ),
           PositionOfIndicator(
             child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 20, tileMode: TileMode.decal),
+              imageFilter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 20, tileMode: TileMode.decal),
               child: Indicator(
                 opacity: .3,
               ),
@@ -110,6 +115,36 @@ class CustomBottomBar extends StatelessWidget {
             width: MediaQuery.of(context).size.width,
             color: AppColors.greyColor,
           ),
+        ),
+        Positioned(
+          bottom: 10.0,
+          child: FutureBuilder<ui.Image>(
+              future: loadUiImage('assets/noise.png'),
+              builder: (context, snapshot) {
+                final m = Matrix4.identity();
+                if (snapshot.hasData) {
+                  if (snapshot.data != null) {
+                    return ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return ImageShader(
+                          snapshot.data!,
+                          TileMode.repeated,
+                          TileMode.repeated,
+                          m.storage,
+                        );
+                      },
+                      blendMode: BlendMode.dstOut,
+                      child: SvgPicture.asset(
+                        'assets/bottom_bar.svg',
+                        width: MediaQuery.of(context).size.width,
+                        color: Color(0x99000000),
+                      ),
+                    );
+                  }
+                  return SizedBox();
+                }
+                return SizedBox();
+              }),
         ),
         Positioned(
             bottom: 40.0,
@@ -182,14 +217,16 @@ class SingleItem extends StatefulWidget {
 }
 
 class _SingleItemState extends State<SingleItem> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  late final AnimationController _controller;
+  late final Animation _animation;
 
   @override
   void initState() {
-    _controller = AnimationController(
-      duration: Duration(milliseconds: 500),
-      vsync: this,
-    );
+    _controller = AnimationController(vsync: this, duration: Duration(seconds: 2));
+    _animation = ColorTween(begin: Colors.grey, end: Colors.white).animate(_controller);
+    if (widget.isSelected) {
+      _controller.forward();
+    }
     super.initState();
   }
 
@@ -198,32 +235,45 @@ class _SingleItemState extends State<SingleItem> with SingleTickerProviderStateM
     return InkWell(
       splashColor: Colors.transparent,
       onTap: () {
-        if(_controller.isCompleted){
-          _controller.reverse();
-        } else{
-          _controller.forward();
-        }
-
+        _controller.forward();
         widget.onTap(widget.menuItem);
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           widget.containsLogo
-              ? AnimatedIcon(
-                  color: widget.isSelected ? Colors.white : Colors.grey,
-                  size: 30,
-                  icon: widget.menuItem.icon,
-                  progress: _controller,
+              ? AnimatedBuilder(
+                  animation: _animation,
+                  builder: (context, child) {
+                    return AnimatedCrossFade(
+                      firstChild: Icon(
+                        widget.menuItem.icon,
+                        color: Colors.grey,
+                        size: 30,
+                      ),
+                      secondChild: Icon(
+                        widget.menuItem.icon,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                      crossFadeState: widget.isSelected ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                      duration: Duration(seconds: 1),
+                      sizeCurve: Curves.easeOutExpo,
+                    );
+                  },
                 )
               : SizedBox(
                   height: 30.0,
                 ),
           Padding(
             padding: const EdgeInsets.only(top: 4.0),
-            child: Text(
-              widget.text,
+            child: AnimatedDefaultTextStyle(
               style: widget.isSelected ? TextStyle(color: Colors.white) : TextStyle(color: Colors.grey),
+              duration: Duration(seconds: 2),
+              curve: Curves.easeOutExpo,
+              child: Text(
+                widget.text,
+              ),
             ),
           )
         ],
@@ -257,7 +307,8 @@ class FakeFab extends StatelessWidget {
 
 class Fab extends StatelessWidget {
   const Fab({
-    Key? key, required this.onTap,
+    Key? key,
+    required this.onTap,
   }) : super(key: key);
   final Function(MenuItems) onTap;
 
@@ -270,22 +321,29 @@ class Fab extends StatelessWidget {
         highlightColor: Colors.transparent,
         onTap: () => onTap(MenuItems.exchange),
         child: Container(
-          padding: EdgeInsets.all(2.0),
-          decoration: ShapeDecoration(
-            shape: CircleBorder(),
-            color: Color(0xff1133ff),
-          ),
-          child: Container(
-            decoration: ShapeDecoration(
-              shape: CircleBorder(),
-              color: AppColors.blueColor,
+          height: 60,
+          width: 60,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              padding: EdgeInsets.all(2.0),
+              decoration: ShapeDecoration(
+                shape: CircleBorder(),
+                color: AppColors.navyBlueColor,
+              ),
+              child: Container(
+                decoration: ShapeDecoration(
+                  shape: CircleBorder(),
+                  color: AppColors.blueColor,
+                ),
+                child: const Icon(
+                  Icons.category,
+                  color: Colors.white,
+                ),
+                height: 60.0,
+                width: 60.0,
+              ),
             ),
-            child: const Icon(
-              Icons.category,
-              color: Colors.white,
-            ),
-            height: 60.0,
-            width: 60.0,
           ),
         ),
       ),
@@ -365,18 +423,26 @@ extension MenuItemsPosition on MenuItems {
     }
   }
 
-  AnimatedIconData get icon {
+  IconData get icon {
     switch (this) {
       case MenuItems.home:
-        return AnimatedIcons.home_menu;
+        return Icons.home_filled;
       case MenuItems.wallet:
-        return AnimatedIcons.ellipsis_search;
+        return Icons.account_balance_wallet_rounded;
       case MenuItems.exchange:
-        return AnimatedIcons.event_add;
+        return Icons.share_sharp;
       case MenuItems.markets:
-        return AnimatedIcons.pause_play;
+        return Icons.shopping_bag_outlined;
       case MenuItems.profile:
-        return AnimatedIcons.view_list;
+        return Icons.luggage_outlined;
     }
   }
+}
+
+Future<ui.Image> loadUiImage(String assetPath) async {
+  final data = await rootBundle.load(assetPath);
+  final list = Uint8List.view(data.buffer);
+  final completer = Completer<ui.Image>();
+  ui.decodeImageFromList(list, completer.complete);
+  return completer.future;
 }
