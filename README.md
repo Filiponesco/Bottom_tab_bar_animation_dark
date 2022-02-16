@@ -4,7 +4,7 @@ Have fun with ImageFilter and Adobe Illustrator.
 
 | Original  | Reproduction |
 | ------------- | ------------- |
-| <img src="https://github.com/Filiponesco/Bottom_tab_bar_animation_dark/blob/master/docs/design.gif" width="320" height="240"/>  | <img src="https://github.com/Filiponesco/Bottom_tab_bar_animation_dark/blob/master/docs/result.gif" width="436" height="169"/>  |
+| <img src="https://github.com/Filiponesco/Bottom_tab_bar_animation_dark/blob/master/docs/design.gif" width="320" height="240"/>  | <img src="https://github.com/Filiponesco/Bottom_tab_bar_animation_dark/blob/master/docs/result2.gif" width="436" height="169"/>  |
 
 # I have learned
 - How to use bezier in Adobe Illustrator.
