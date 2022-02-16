@@ -113,7 +113,7 @@ class CustomBottomBar extends StatelessWidget {
           child: SvgPicture.asset(
             'assets/bottom_bar.svg',
             width: MediaQuery.of(context).size.width,
-            color: AppColors.greyColor,
+            color: Colors.black,
           ),
         ),
         Positioned(
@@ -137,7 +137,7 @@ class CustomBottomBar extends StatelessWidget {
                       child: SvgPicture.asset(
                         'assets/bottom_bar.svg',
                         width: MediaQuery.of(context).size.width,
-                        color: Color(0x99000000),
+                        color: Colors.grey.withOpacity(.1),
                       ),
                     );
                   }
